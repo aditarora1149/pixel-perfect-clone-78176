@@ -60,7 +60,7 @@ export const getHistory = createServerFn({ method: "POST" })
       const end = new Date();
       const start = new Date();
       start.setFullYear(end.getFullYear() - 2);
-      const rows = await y.historical(data.symbol, { period1: start, period2: end, interval: "1d" });
+      const rows = (await y.historical(data.symbol, { period1: start, period2: end, interval: "1d" })) as Array<{ date: Date; close: number | null; volume: number | null }>;
       const points = rows
         .filter((r) => r.close != null)
         .map((r) => ({
