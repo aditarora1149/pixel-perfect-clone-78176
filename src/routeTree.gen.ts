@@ -15,6 +15,7 @@ import { Route as Top20RouteImport } from './routes/top-20'
 import { Route as ScreenerRouteImport } from './routes/screener'
 import { Route as ScenarioLabRouteImport } from './routes/scenario-lab'
 import { Route as SandboxRouteImport } from './routes/sandbox'
+import { Route as FundamentalsRouteImport } from './routes/fundamentals'
 import { Route as AnalystRouteImport } from './routes/analyst'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StockSymbolRouteImport } from './routes/stock.$symbol'
@@ -51,6 +52,11 @@ const SandboxRoute = SandboxRouteImport.update({
   path: '/sandbox',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FundamentalsRoute = FundamentalsRouteImport.update({
+  id: '/fundamentals',
+  path: '/fundamentals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnalystRoute = AnalystRouteImport.update({
   id: '/analyst',
   path: '/analyst',
@@ -80,6 +86,7 @@ const ApiChatRoute = ApiChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analyst': typeof AnalystRoute
+  '/fundamentals': typeof FundamentalsRoute
   '/sandbox': typeof SandboxRoute
   '/scenario-lab': typeof ScenarioLabRoute
   '/screener': typeof ScreenerRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analyst': typeof AnalystRoute
+  '/fundamentals': typeof FundamentalsRoute
   '/sandbox': typeof SandboxRoute
   '/scenario-lab': typeof ScenarioLabRoute
   '/screener': typeof ScreenerRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analyst': typeof AnalystRoute
+  '/fundamentals': typeof FundamentalsRoute
   '/sandbox': typeof SandboxRoute
   '/scenario-lab': typeof ScenarioLabRoute
   '/screener': typeof ScreenerRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/analyst'
+    | '/fundamentals'
     | '/sandbox'
     | '/scenario-lab'
     | '/screener'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/analyst'
+    | '/fundamentals'
     | '/sandbox'
     | '/scenario-lab'
     | '/screener'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/analyst'
+    | '/fundamentals'
     | '/sandbox'
     | '/scenario-lab'
     | '/screener'
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalystRoute: typeof AnalystRoute
+  FundamentalsRoute: typeof FundamentalsRoute
   SandboxRoute: typeof SandboxRoute
   ScenarioLabRoute: typeof ScenarioLabRoute
   ScreenerRoute: typeof ScreenerRoute
@@ -217,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SandboxRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fundamentals': {
+      id: '/fundamentals'
+      path: '/fundamentals'
+      fullPath: '/fundamentals'
+      preLoaderRoute: typeof FundamentalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analyst': {
       id: '/analyst'
       path: '/analyst'
@@ -258,6 +278,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalystRoute: AnalystRoute,
+  FundamentalsRoute: FundamentalsRoute,
   SandboxRoute: SandboxRoute,
   ScenarioLabRoute: ScenarioLabRoute,
   ScreenerRoute: ScreenerRoute,
@@ -271,3 +292,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
