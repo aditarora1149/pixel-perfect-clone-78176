@@ -9,38 +9,221 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkflowRouteImport } from './routes/workflow'
+import { Route as Top50RouteImport } from './routes/top-50'
+import { Route as Top20RouteImport } from './routes/top-20'
+import { Route as ScreenerRouteImport } from './routes/screener'
+import { Route as ScenarioLabRouteImport } from './routes/scenario-lab'
+import { Route as SandboxRouteImport } from './routes/sandbox'
+import { Route as AnalystRouteImport } from './routes/analyst'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StockSymbolRouteImport } from './routes/stock.$symbol'
+import { Route as SimulationMonteCarloRouteImport } from './routes/simulation.monte-carlo'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const WorkflowRoute = WorkflowRouteImport.update({
+  id: '/workflow',
+  path: '/workflow',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Top50Route = Top50RouteImport.update({
+  id: '/top-50',
+  path: '/top-50',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Top20Route = Top20RouteImport.update({
+  id: '/top-20',
+  path: '/top-20',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScreenerRoute = ScreenerRouteImport.update({
+  id: '/screener',
+  path: '/screener',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScenarioLabRoute = ScenarioLabRouteImport.update({
+  id: '/scenario-lab',
+  path: '/scenario-lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SandboxRoute = SandboxRouteImport.update({
+  id: '/sandbox',
+  path: '/sandbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalystRoute = AnalystRouteImport.update({
+  id: '/analyst',
+  path: '/analyst',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StockSymbolRoute = StockSymbolRouteImport.update({
+  id: '/stock/$symbol',
+  path: '/stock/$symbol',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimulationMonteCarloRoute = SimulationMonteCarloRouteImport.update({
+  id: '/simulation/monte-carlo',
+  path: '/simulation/monte-carlo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analyst': typeof AnalystRoute
+  '/sandbox': typeof SandboxRoute
+  '/scenario-lab': typeof ScenarioLabRoute
+  '/screener': typeof ScreenerRoute
+  '/top-20': typeof Top20Route
+  '/top-50': typeof Top50Route
+  '/workflow': typeof WorkflowRoute
+  '/api/chat': typeof ApiChatRoute
+  '/simulation/monte-carlo': typeof SimulationMonteCarloRoute
+  '/stock/$symbol': typeof StockSymbolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analyst': typeof AnalystRoute
+  '/sandbox': typeof SandboxRoute
+  '/scenario-lab': typeof ScenarioLabRoute
+  '/screener': typeof ScreenerRoute
+  '/top-20': typeof Top20Route
+  '/top-50': typeof Top50Route
+  '/workflow': typeof WorkflowRoute
+  '/api/chat': typeof ApiChatRoute
+  '/simulation/monte-carlo': typeof SimulationMonteCarloRoute
+  '/stock/$symbol': typeof StockSymbolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analyst': typeof AnalystRoute
+  '/sandbox': typeof SandboxRoute
+  '/scenario-lab': typeof ScenarioLabRoute
+  '/screener': typeof ScreenerRoute
+  '/top-20': typeof Top20Route
+  '/top-50': typeof Top50Route
+  '/workflow': typeof WorkflowRoute
+  '/api/chat': typeof ApiChatRoute
+  '/simulation/monte-carlo': typeof SimulationMonteCarloRoute
+  '/stock/$symbol': typeof StockSymbolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/analyst'
+    | '/sandbox'
+    | '/scenario-lab'
+    | '/screener'
+    | '/top-20'
+    | '/top-50'
+    | '/workflow'
+    | '/api/chat'
+    | '/simulation/monte-carlo'
+    | '/stock/$symbol'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/analyst'
+    | '/sandbox'
+    | '/scenario-lab'
+    | '/screener'
+    | '/top-20'
+    | '/top-50'
+    | '/workflow'
+    | '/api/chat'
+    | '/simulation/monte-carlo'
+    | '/stock/$symbol'
+  id:
+    | '__root__'
+    | '/'
+    | '/analyst'
+    | '/sandbox'
+    | '/scenario-lab'
+    | '/screener'
+    | '/top-20'
+    | '/top-50'
+    | '/workflow'
+    | '/api/chat'
+    | '/simulation/monte-carlo'
+    | '/stock/$symbol'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalystRoute: typeof AnalystRoute
+  SandboxRoute: typeof SandboxRoute
+  ScenarioLabRoute: typeof ScenarioLabRoute
+  ScreenerRoute: typeof ScreenerRoute
+  Top20Route: typeof Top20Route
+  Top50Route: typeof Top50Route
+  WorkflowRoute: typeof WorkflowRoute
+  ApiChatRoute: typeof ApiChatRoute
+  SimulationMonteCarloRoute: typeof SimulationMonteCarloRoute
+  StockSymbolRoute: typeof StockSymbolRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workflow': {
+      id: '/workflow'
+      path: '/workflow'
+      fullPath: '/workflow'
+      preLoaderRoute: typeof WorkflowRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/top-50': {
+      id: '/top-50'
+      path: '/top-50'
+      fullPath: '/top-50'
+      preLoaderRoute: typeof Top50RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/top-20': {
+      id: '/top-20'
+      path: '/top-20'
+      fullPath: '/top-20'
+      preLoaderRoute: typeof Top20RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/screener': {
+      id: '/screener'
+      path: '/screener'
+      fullPath: '/screener'
+      preLoaderRoute: typeof ScreenerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scenario-lab': {
+      id: '/scenario-lab'
+      path: '/scenario-lab'
+      fullPath: '/scenario-lab'
+      preLoaderRoute: typeof ScenarioLabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sandbox': {
+      id: '/sandbox'
+      path: '/sandbox'
+      fullPath: '/sandbox'
+      preLoaderRoute: typeof SandboxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analyst': {
+      id: '/analyst'
+      path: '/analyst'
+      fullPath: '/analyst'
+      preLoaderRoute: typeof AnalystRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +231,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stock/$symbol': {
+      id: '/stock/$symbol'
+      path: '/stock/$symbol'
+      fullPath: '/stock/$symbol'
+      preLoaderRoute: typeof StockSymbolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simulation/monte-carlo': {
+      id: '/simulation/monte-carlo'
+      path: '/simulation/monte-carlo'
+      fullPath: '/simulation/monte-carlo'
+      preLoaderRoute: typeof SimulationMonteCarloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalystRoute: AnalystRoute,
+  SandboxRoute: SandboxRoute,
+  ScenarioLabRoute: ScenarioLabRoute,
+  ScreenerRoute: ScreenerRoute,
+  Top20Route: Top20Route,
+  Top50Route: Top50Route,
+  WorkflowRoute: WorkflowRoute,
+  ApiChatRoute: ApiChatRoute,
+  SimulationMonteCarloRoute: SimulationMonteCarloRoute,
+  StockSymbolRoute: StockSymbolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
