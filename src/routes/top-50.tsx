@@ -1,0 +1,40 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Page, Panel, ScorePill, DataSource } from "@/components/common";
+import { useAppStore } from "@/stores/app-store";
+import { rankUniverse } from "@/lib/screener";
+import { useMemo } from "react";
+
+export const Route = createFileRoute("/top-50")({
+  head: () => ({ meta: [{ title: "Top 50 — ALPHADESK" }] }),
+  component: () => {
+    const market = useAppStore((s) => s.market);
+    const weights = useAppStore((s) => s.weights);
+    const rows = useMemo(() => rankUniverse(market, weights).slice(0, 50), [market, weights]);
+    return (
+      <Page title="Top 50" subtitle="Stage 2 — refined ranking with full score breakdown." badge="STAGE 2">
+        <Panel>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {rows.map((r, i) => (
+              <Link key={r.entry.symbol} to="/stock/$symbol" params={{ symbol: r.entry.symbol }}>
+                <div className="flex items-center justify-between p-2 rounded border border-border/40 hover:border-primary/40 hover:bg-secondary/30">
+                  <div className="flex items-center gap-3">
+                    <div className="text-xs text-muted-foreground tabular-nums w-6">{i + 1}</div>
+                    <div>
+                      <div className="font-semibold text-sm">{r.entry.symbol.replace(".NS", "")}</div>
+                      <div className="text-[10px] text-muted-foreground">{r.entry.sector}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[var(--bull)] text-xs tabular-nums">+{r.upsidePct.toFixed(0)}%</span>
+                    <ScorePill score={r.scores.composite} />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <DataSource source="Transparent composite ranking" />
+        </Panel>
+      </Page>
+    );
+  },
+});

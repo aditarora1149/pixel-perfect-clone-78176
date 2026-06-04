@@ -9,38 +9,501 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkflowRouteImport } from './routes/workflow'
+import { Route as WatchlistRouteImport } from './routes/watchlist'
+import { Route as ValuationRouteImport } from './routes/valuation'
+import { Route as Top50RouteImport } from './routes/top-50'
+import { Route as Top20RouteImport } from './routes/top-20'
+import { Route as TechnicalRouteImport } from './routes/technical'
+import { Route as ScreenerRouteImport } from './routes/screener'
+import { Route as ScenarioLabRouteImport } from './routes/scenario-lab'
+import { Route as SandboxRouteImport } from './routes/sandbox'
+import { Route as Risk3dRouteImport } from './routes/risk-3d'
+import { Route as RiskRouteImport } from './routes/risk'
+import { Route as RejectedRouteImport } from './routes/rejected'
+import { Route as QuantRouteImport } from './routes/quant'
+import { Route as QualitativeRouteImport } from './routes/qualitative'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as NewsRouteImport } from './routes/news'
+import { Route as FundamentalsRouteImport } from './routes/fundamentals'
+import { Route as CustomRouteImport } from './routes/custom'
+import { Route as CompareRouteImport } from './routes/compare'
+import { Route as AnalystRouteImport } from './routes/analyst'
+import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StockSymbolRouteImport } from './routes/stock.$symbol'
+import { Route as SimulationMonteCarloRouteImport } from './routes/simulation.monte-carlo'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const WorkflowRoute = WorkflowRouteImport.update({
+  id: '/workflow',
+  path: '/workflow',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WatchlistRoute = WatchlistRouteImport.update({
+  id: '/watchlist',
+  path: '/watchlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ValuationRoute = ValuationRouteImport.update({
+  id: '/valuation',
+  path: '/valuation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Top50Route = Top50RouteImport.update({
+  id: '/top-50',
+  path: '/top-50',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Top20Route = Top20RouteImport.update({
+  id: '/top-20',
+  path: '/top-20',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TechnicalRoute = TechnicalRouteImport.update({
+  id: '/technical',
+  path: '/technical',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScreenerRoute = ScreenerRouteImport.update({
+  id: '/screener',
+  path: '/screener',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScenarioLabRoute = ScenarioLabRouteImport.update({
+  id: '/scenario-lab',
+  path: '/scenario-lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SandboxRoute = SandboxRouteImport.update({
+  id: '/sandbox',
+  path: '/sandbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Risk3dRoute = Risk3dRouteImport.update({
+  id: '/risk-3d',
+  path: '/risk-3d',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RiskRoute = RiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RejectedRoute = RejectedRouteImport.update({
+  id: '/rejected',
+  path: '/rejected',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuantRoute = QuantRouteImport.update({
+  id: '/quant',
+  path: '/quant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QualitativeRoute = QualitativeRouteImport.update({
+  id: '/qualitative',
+  path: '/qualitative',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsRoute = NewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FundamentalsRoute = FundamentalsRouteImport.update({
+  id: '/fundamentals',
+  path: '/fundamentals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CustomRoute = CustomRouteImport.update({
+  id: '/custom',
+  path: '/custom',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalystRoute = AnalystRouteImport.update({
+  id: '/analyst',
+  path: '/analyst',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlertsRoute = AlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StockSymbolRoute = StockSymbolRouteImport.update({
+  id: '/stock/$symbol',
+  path: '/stock/$symbol',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimulationMonteCarloRoute = SimulationMonteCarloRouteImport.update({
+  id: '/simulation/monte-carlo',
+  path: '/simulation/monte-carlo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
+  '/analyst': typeof AnalystRoute
+  '/compare': typeof CompareRoute
+  '/custom': typeof CustomRoute
+  '/fundamentals': typeof FundamentalsRoute
+  '/news': typeof NewsRoute
+  '/portfolio': typeof PortfolioRoute
+  '/qualitative': typeof QualitativeRoute
+  '/quant': typeof QuantRoute
+  '/rejected': typeof RejectedRoute
+  '/risk': typeof RiskRoute
+  '/risk-3d': typeof Risk3dRoute
+  '/sandbox': typeof SandboxRoute
+  '/scenario-lab': typeof ScenarioLabRoute
+  '/screener': typeof ScreenerRoute
+  '/technical': typeof TechnicalRoute
+  '/top-20': typeof Top20Route
+  '/top-50': typeof Top50Route
+  '/valuation': typeof ValuationRoute
+  '/watchlist': typeof WatchlistRoute
+  '/workflow': typeof WorkflowRoute
+  '/api/chat': typeof ApiChatRoute
+  '/simulation/monte-carlo': typeof SimulationMonteCarloRoute
+  '/stock/$symbol': typeof StockSymbolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
+  '/analyst': typeof AnalystRoute
+  '/compare': typeof CompareRoute
+  '/custom': typeof CustomRoute
+  '/fundamentals': typeof FundamentalsRoute
+  '/news': typeof NewsRoute
+  '/portfolio': typeof PortfolioRoute
+  '/qualitative': typeof QualitativeRoute
+  '/quant': typeof QuantRoute
+  '/rejected': typeof RejectedRoute
+  '/risk': typeof RiskRoute
+  '/risk-3d': typeof Risk3dRoute
+  '/sandbox': typeof SandboxRoute
+  '/scenario-lab': typeof ScenarioLabRoute
+  '/screener': typeof ScreenerRoute
+  '/technical': typeof TechnicalRoute
+  '/top-20': typeof Top20Route
+  '/top-50': typeof Top50Route
+  '/valuation': typeof ValuationRoute
+  '/watchlist': typeof WatchlistRoute
+  '/workflow': typeof WorkflowRoute
+  '/api/chat': typeof ApiChatRoute
+  '/simulation/monte-carlo': typeof SimulationMonteCarloRoute
+  '/stock/$symbol': typeof StockSymbolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
+  '/analyst': typeof AnalystRoute
+  '/compare': typeof CompareRoute
+  '/custom': typeof CustomRoute
+  '/fundamentals': typeof FundamentalsRoute
+  '/news': typeof NewsRoute
+  '/portfolio': typeof PortfolioRoute
+  '/qualitative': typeof QualitativeRoute
+  '/quant': typeof QuantRoute
+  '/rejected': typeof RejectedRoute
+  '/risk': typeof RiskRoute
+  '/risk-3d': typeof Risk3dRoute
+  '/sandbox': typeof SandboxRoute
+  '/scenario-lab': typeof ScenarioLabRoute
+  '/screener': typeof ScreenerRoute
+  '/technical': typeof TechnicalRoute
+  '/top-20': typeof Top20Route
+  '/top-50': typeof Top50Route
+  '/valuation': typeof ValuationRoute
+  '/watchlist': typeof WatchlistRoute
+  '/workflow': typeof WorkflowRoute
+  '/api/chat': typeof ApiChatRoute
+  '/simulation/monte-carlo': typeof SimulationMonteCarloRoute
+  '/stock/$symbol': typeof StockSymbolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/alerts'
+    | '/analyst'
+    | '/compare'
+    | '/custom'
+    | '/fundamentals'
+    | '/news'
+    | '/portfolio'
+    | '/qualitative'
+    | '/quant'
+    | '/rejected'
+    | '/risk'
+    | '/risk-3d'
+    | '/sandbox'
+    | '/scenario-lab'
+    | '/screener'
+    | '/technical'
+    | '/top-20'
+    | '/top-50'
+    | '/valuation'
+    | '/watchlist'
+    | '/workflow'
+    | '/api/chat'
+    | '/simulation/monte-carlo'
+    | '/stock/$symbol'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/alerts'
+    | '/analyst'
+    | '/compare'
+    | '/custom'
+    | '/fundamentals'
+    | '/news'
+    | '/portfolio'
+    | '/qualitative'
+    | '/quant'
+    | '/rejected'
+    | '/risk'
+    | '/risk-3d'
+    | '/sandbox'
+    | '/scenario-lab'
+    | '/screener'
+    | '/technical'
+    | '/top-20'
+    | '/top-50'
+    | '/valuation'
+    | '/watchlist'
+    | '/workflow'
+    | '/api/chat'
+    | '/simulation/monte-carlo'
+    | '/stock/$symbol'
+  id:
+    | '__root__'
+    | '/'
+    | '/alerts'
+    | '/analyst'
+    | '/compare'
+    | '/custom'
+    | '/fundamentals'
+    | '/news'
+    | '/portfolio'
+    | '/qualitative'
+    | '/quant'
+    | '/rejected'
+    | '/risk'
+    | '/risk-3d'
+    | '/sandbox'
+    | '/scenario-lab'
+    | '/screener'
+    | '/technical'
+    | '/top-20'
+    | '/top-50'
+    | '/valuation'
+    | '/watchlist'
+    | '/workflow'
+    | '/api/chat'
+    | '/simulation/monte-carlo'
+    | '/stock/$symbol'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AlertsRoute: typeof AlertsRoute
+  AnalystRoute: typeof AnalystRoute
+  CompareRoute: typeof CompareRoute
+  CustomRoute: typeof CustomRoute
+  FundamentalsRoute: typeof FundamentalsRoute
+  NewsRoute: typeof NewsRoute
+  PortfolioRoute: typeof PortfolioRoute
+  QualitativeRoute: typeof QualitativeRoute
+  QuantRoute: typeof QuantRoute
+  RejectedRoute: typeof RejectedRoute
+  RiskRoute: typeof RiskRoute
+  Risk3dRoute: typeof Risk3dRoute
+  SandboxRoute: typeof SandboxRoute
+  ScenarioLabRoute: typeof ScenarioLabRoute
+  ScreenerRoute: typeof ScreenerRoute
+  TechnicalRoute: typeof TechnicalRoute
+  Top20Route: typeof Top20Route
+  Top50Route: typeof Top50Route
+  ValuationRoute: typeof ValuationRoute
+  WatchlistRoute: typeof WatchlistRoute
+  WorkflowRoute: typeof WorkflowRoute
+  ApiChatRoute: typeof ApiChatRoute
+  SimulationMonteCarloRoute: typeof SimulationMonteCarloRoute
+  StockSymbolRoute: typeof StockSymbolRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workflow': {
+      id: '/workflow'
+      path: '/workflow'
+      fullPath: '/workflow'
+      preLoaderRoute: typeof WorkflowRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/watchlist': {
+      id: '/watchlist'
+      path: '/watchlist'
+      fullPath: '/watchlist'
+      preLoaderRoute: typeof WatchlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/valuation': {
+      id: '/valuation'
+      path: '/valuation'
+      fullPath: '/valuation'
+      preLoaderRoute: typeof ValuationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/top-50': {
+      id: '/top-50'
+      path: '/top-50'
+      fullPath: '/top-50'
+      preLoaderRoute: typeof Top50RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/top-20': {
+      id: '/top-20'
+      path: '/top-20'
+      fullPath: '/top-20'
+      preLoaderRoute: typeof Top20RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/technical': {
+      id: '/technical'
+      path: '/technical'
+      fullPath: '/technical'
+      preLoaderRoute: typeof TechnicalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/screener': {
+      id: '/screener'
+      path: '/screener'
+      fullPath: '/screener'
+      preLoaderRoute: typeof ScreenerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scenario-lab': {
+      id: '/scenario-lab'
+      path: '/scenario-lab'
+      fullPath: '/scenario-lab'
+      preLoaderRoute: typeof ScenarioLabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sandbox': {
+      id: '/sandbox'
+      path: '/sandbox'
+      fullPath: '/sandbox'
+      preLoaderRoute: typeof SandboxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/risk-3d': {
+      id: '/risk-3d'
+      path: '/risk-3d'
+      fullPath: '/risk-3d'
+      preLoaderRoute: typeof Risk3dRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/risk': {
+      id: '/risk'
+      path: '/risk'
+      fullPath: '/risk'
+      preLoaderRoute: typeof RiskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rejected': {
+      id: '/rejected'
+      path: '/rejected'
+      fullPath: '/rejected'
+      preLoaderRoute: typeof RejectedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quant': {
+      id: '/quant'
+      path: '/quant'
+      fullPath: '/quant'
+      preLoaderRoute: typeof QuantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qualitative': {
+      id: '/qualitative'
+      path: '/qualitative'
+      fullPath: '/qualitative'
+      preLoaderRoute: typeof QualitativeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/news': {
+      id: '/news'
+      path: '/news'
+      fullPath: '/news'
+      preLoaderRoute: typeof NewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fundamentals': {
+      id: '/fundamentals'
+      path: '/fundamentals'
+      fullPath: '/fundamentals'
+      preLoaderRoute: typeof FundamentalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/custom': {
+      id: '/custom'
+      path: '/custom'
+      fullPath: '/custom'
+      preLoaderRoute: typeof CustomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analyst': {
+      id: '/analyst'
+      path: '/analyst'
+      fullPath: '/analyst'
+      preLoaderRoute: typeof AnalystRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alerts': {
+      id: '/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,12 +511,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stock/$symbol': {
+      id: '/stock/$symbol'
+      path: '/stock/$symbol'
+      fullPath: '/stock/$symbol'
+      preLoaderRoute: typeof StockSymbolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simulation/monte-carlo': {
+      id: '/simulation/monte-carlo'
+      path: '/simulation/monte-carlo'
+      fullPath: '/simulation/monte-carlo'
+      preLoaderRoute: typeof SimulationMonteCarloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AlertsRoute: AlertsRoute,
+  AnalystRoute: AnalystRoute,
+  CompareRoute: CompareRoute,
+  CustomRoute: CustomRoute,
+  FundamentalsRoute: FundamentalsRoute,
+  NewsRoute: NewsRoute,
+  PortfolioRoute: PortfolioRoute,
+  QualitativeRoute: QualitativeRoute,
+  QuantRoute: QuantRoute,
+  RejectedRoute: RejectedRoute,
+  RiskRoute: RiskRoute,
+  Risk3dRoute: Risk3dRoute,
+  SandboxRoute: SandboxRoute,
+  ScenarioLabRoute: ScenarioLabRoute,
+  ScreenerRoute: ScreenerRoute,
+  TechnicalRoute: TechnicalRoute,
+  Top20Route: Top20Route,
+  Top50Route: Top50Route,
+  ValuationRoute: ValuationRoute,
+  WatchlistRoute: WatchlistRoute,
+  WorkflowRoute: WorkflowRoute,
+  ApiChatRoute: ApiChatRoute,
+  SimulationMonteCarloRoute: SimulationMonteCarloRoute,
+  StockSymbolRoute: StockSymbolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

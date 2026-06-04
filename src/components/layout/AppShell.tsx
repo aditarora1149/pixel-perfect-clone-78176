@@ -13,6 +13,10 @@ const sections = [
     items: [
       { to: "/", icon: LayoutDashboard, label: "Dashboard" },
       { to: "/analyst", icon: MessageSquare, label: "AI Analyst", badge: "AI" },
+      { to: "/workflow", icon: Layers, label: "Workflow Map", badge: "★" },
+      { to: "/scenario-lab", icon: Sparkles, label: "Scenario Lab", badge: "★" },
+      { to: "/custom", icon: Filter, label: "Custom Analysis" },
+      { to: "/compare", icon: BarChart3, label: "Compare" },
     ],
   },
   {
