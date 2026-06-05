@@ -6,13 +6,13 @@ import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/quant")({
-  head: () => ({ meta: [{ title: "PAGETITLE — ALPHADESK" }] }),
+  head: () => ({ meta: [{ title: "Quant Factors — ALPHADESK" }] }),
   component: () => {
     const market = useAppStore((s) => s.market);
     const weights = useAppStore((s) => s.weights);
     const rows = useMemo(() => rankUniverse(market, weights).slice(0, 25), [market, weights]);
     return (
-      <Page title="PAGETITLE" subtitle="Ranked view from the transparent scoring engine. Click any stock for full breakdown.">
+      <Page title="Quant Factors" subtitle="Momentum, low-vol, quality, Sharpe.">
         <Panel>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {rows.map((r, i) => (
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/quant")({
                       <div className="text-[10px] text-muted-foreground">{r.entry.sector}</div>
                     </div>
                   </div>
-                  <ScorePill score={SCOREKEY} />
+                  <ScorePill score={r.scores.quantitative} />
                 </div>
               </Link>
             ))}
