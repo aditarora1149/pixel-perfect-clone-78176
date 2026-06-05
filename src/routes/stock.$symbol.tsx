@@ -1,9 +1,13 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Page, Panel, ScorePill, Bar, DataSource, MetricRow, fmtNum, fmtPct, Unavailable } from "@/components/common";
-import { useAppStore } from "@/stores/app-store";
+import { Info } from "@/components/Info";
+import { ActionPlanPanel } from "@/components/ActionPlanPanel";
+import { useAppStore, weightsForHorizon, type Horizon } from "@/stores/app-store";
 import { computeAllScores, seedMetrics } from "@/lib/scoring";
+import { computeActionPlan } from "@/lib/action-plan";
 import { findEntry } from "@/lib/universe";
 import { useMemo, useState } from "react";
+import { Star, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/stock/$symbol")({
   head: ({ params }) => ({ meta: [{ title: `${params.symbol} — Stock Detail` }] }),
@@ -16,35 +20,55 @@ const TABS = ["Fundamental", "Valuation", "Quant", "Technical", "Qualitative", "
 function StockDetail() {
   const { symbol } = Route.useParams();
   const entry = findEntry(symbol);
-  const weights = useAppStore((s) => s.weights);
+  const globalHorizon = useAppStore((s) => s.horizon);
+  const watchlist = useAppStore((s) => s.watchlist);
+  const toggleWatch = useAppStore((s) => s.toggleWatch);
+  const reject = useAppStore((s) => s.reject);
   const [tab, setTab] = useState<typeof TABS[number]>("Fundamental");
+  const [stockHorizon, setStockHorizon] = useState<Horizon>(globalHorizon);
 
   if (!entry) throw notFound();
 
+  const weights = useMemo(() => weightsForHorizon(stockHorizon), [stockHorizon]);
   const m = useMemo(() => seedMetrics(entry.symbol, entry.sector), [entry]);
   const scores = useMemo(() => computeAllScores(m, entry, weights), [m, entry, weights]);
+  const plan = useMemo(() => computeActionPlan(m, scores, stockHorizon), [m, scores, stockHorizon]);
   const cur = entry.market === "IN" ? "₹" : "$";
+  const isWatched = watchlist.includes(entry.symbol);
 
   return (
     <Page
       title={entry.name}
       subtitle={`${entry.symbol} · ${entry.exchange} · ${entry.sector} → ${entry.industry}`}
       badge={scores.classification}
-      actions={<ScorePill score={scores.composite} label="Composite" />}
+      actions={
+        <div className="flex items-center gap-2">
+          <button onClick={() => toggleWatch(entry.symbol)} className={`p-2 rounded border ${isWatched ? "bg-[var(--warning)]/20 border-[var(--warning)] text-[var(--warning)]" : "border-border text-muted-foreground hover:text-foreground"}`} aria-label="Watch">
+            <Star className="h-4 w-4" fill={isWatched ? "currentColor" : "none"} />
+          </button>
+          <button onClick={() => { if (confirm(`Reject ${entry.symbol}?`)) reject(entry.symbol, "Manual reject from detail page"); }} className="p-2 rounded border border-border text-muted-foreground hover:text-[var(--bear)]" aria-label="Reject">
+            <XCircle className="h-4 w-4" />
+          </button>
+          <ScorePill score={scores.composite} label="Composite" />
+        </div>
+      }
     >
+      <div className="mb-4">
+        <ActionPlanPanel plan={plan} currency={cur} horizon={stockHorizon} onHorizonChange={setStockHorizon} />
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-4">
-        {[
-          ["Fundamental", scores.fundamental],
-          ["Valuation", scores.valuation],
-          ["Quant", scores.quantitative],
-          ["Technical", scores.technical],
-          ["Qualitative", scores.qualitative],
-          ["ML", scores.ml],
-        ].map(([label, score]) => (
-          <Panel key={label as string}>
-            <div className="text-[10px] text-muted-foreground mb-1">{label}</div>
-            <div className="text-xl font-bold tabular-nums">{(score as number).toFixed(0)}</div>
-            <Bar value={score as number} />
+        {([
+          ["Fundamental", scores.fundamental, "fundamental"],
+          ["Valuation", scores.valuation, "valuation"],
+          ["Quant", scores.quantitative, "quant"],
+          ["Technical", scores.technical, "technical"],
+          ["Qualitative", scores.qualitative, "qualitative"],
+          ["ML", scores.ml, "ml"],
+        ] as const).map(([label, score, key]) => (
+          <Panel key={label}>
+            <div className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">{label} <Info k={key} /></div>
+            <div className="text-xl font-bold tabular-nums">{score.toFixed(0)}</div>
+            <Bar value={score} />
           </Panel>
         ))}
       </div>

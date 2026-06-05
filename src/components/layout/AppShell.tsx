@@ -1,10 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useAppStore } from "@/stores/app-store";
+import { useAppStore, HORIZONS } from "@/stores/app-store";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Filter, ListOrdered, Trophy, LineChart, Calculator, ShieldAlert,
   Newspaper, PieChart, IndianRupee, Wallet, Star, XCircle, Bell, Brain, GitBranch,
   Sparkles, Boxes, MessageSquare, Activity, BarChart3, TrendingUp, Layers,
+  BookOpen, FileDown, Building2,
 } from "lucide-react";
 
 const sections = [
@@ -17,6 +18,8 @@ const sections = [
       { to: "/scenario-lab", icon: Sparkles, label: "Scenario Lab", badge: "★" },
       { to: "/custom", icon: Filter, label: "Custom Analysis" },
       { to: "/compare", icon: BarChart3, label: "Compare" },
+      { to: "/education", icon: BookOpen, label: "Learn", badge: "?" },
+      { to: "/report", icon: FileDown, label: "Export Report", badge: "PDF" },
     ],
   },
   {
@@ -35,6 +38,7 @@ const sections = [
       { to: "/quant", icon: TrendingUp, label: "Quant Factors" },
       { to: "/technical", icon: LineChart, label: "Technical" },
       { to: "/qualitative", icon: Layers, label: "Qualitative" },
+      { to: "/sectors", icon: Building2, label: "Sectors" },
     ],
   },
   {
@@ -115,6 +119,8 @@ export function SideNav() {
 export function TopBar() {
   const market = useAppStore((s) => s.market);
   const setMarket = useAppStore((s) => s.setMarket);
+  const horizon = useAppStore((s) => s.horizon);
+  const setHorizon = useAppStore((s) => s.setHorizon);
   return (
     <header className="h-14 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="h-full px-4 flex items-center gap-4">
@@ -143,8 +149,19 @@ export function TopBar() {
           ))}
         </div>
 
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] uppercase text-muted-foreground">Horizon</span>
+          <select
+            value={horizon}
+            onChange={(e) => setHorizon(e.target.value as typeof horizon)}
+            className="text-xs bg-secondary border border-border rounded px-2 py-1 font-semibold"
+          >
+            {HORIZONS.map((h) => <option key={h.id} value={h.id}>{h.label}</option>)}
+          </select>
+        </div>
+
         <div className="flex-1" />
-        <div className="text-xs text-muted-foreground tabular ticker-live">
+        <div className="text-xs text-muted-foreground tabular ticker-live hidden md:block">
           Live data: Yahoo Finance · Free tier · {market === "IN" ? "INR" : "USD"}
         </div>
       </div>
