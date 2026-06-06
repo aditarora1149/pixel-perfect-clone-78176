@@ -1,48 +1,121 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Page, Panel, DataSource, Unavailable } from "@/components/common";
 import { useAppStore } from "@/stores/app-store";
 import { getUniverse } from "@/lib/universe";
+import { getNews } from "@/lib/news.functions";
+import { Loader2, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/news")({
   head: () => ({ meta: [{ title: "News & Sentiment — ALPHADESK" }] }),
   component: NewsPage,
 });
 
-// Manually curated demo feed — clearly labelled. Real feed plugs into RSS.
-const DEMO_FEED = [
-  { symbol: "RELIANCE.NS", source: "Exchange Filing", date: "2025-06-04", title: "Reliance announces ₹75,000 cr renewable energy capex", sentiment: "Positive", impact: "Long-term structural" },
-  { symbol: "INFY.NS", source: "Moneycontrol", date: "2025-06-03", title: "Infosys wins multi-year deal with European bank", sentiment: "Positive", impact: "Medium-term" },
-  { symbol: "TATAMOTORS.NS", source: "ET", date: "2025-06-02", title: "Tata Motors JLR volumes weaker in May", sentiment: "Negative", impact: "Short-term noise" },
-  { symbol: "AAPL", source: "Reuters", date: "2025-06-04", title: "Apple unveils on-device AI features at WWDC", sentiment: "Positive", impact: "Long-term structural" },
-  { symbol: "TSLA", source: "WSJ", date: "2025-06-03", title: "Tesla Q2 deliveries trending below consensus", sentiment: "Negative", impact: "Medium-term concern" },
-];
-
-const SENT_COLOR = { Positive: "text-[var(--bull)]", Negative: "text-[var(--bear)]", Neutral: "text-muted-foreground" } as const;
+function classifySentiment(text: string): { label: "Positive" | "Negative" | "Neutral"; color: string } {
+  const t = text.toLowerCase();
+  const pos = ["beats", "surge", "record", "growth", "wins", "upgrade", "profit", "rally", "strong", "expansion", "approval"];
+  const neg = ["miss", "decline", "loss", "downgrade", "probe", "lawsuit", "weak", "cut", "falls", "drops", "warning", "default"];
+  let score = 0;
+  for (const w of pos) if (t.includes(w)) score++;
+  for (const w of neg) if (t.includes(w)) score--;
+  if (score > 0) return { label: "Positive", color: "text-[var(--bull)]" };
+  if (score < 0) return { label: "Negative", color: "text-[var(--bear)]" };
+  return { label: "Neutral", color: "text-muted-foreground" };
+}
 
 function NewsPage() {
   const market = useAppStore((s) => s.market);
   const universe = getUniverse(market);
-  const items = DEMO_FEED.filter((n) => universe.some((u) => u.symbol === n.symbol));
+  const [symbol, setSymbol] = useState<string>(universe[0]?.symbol ?? "RELIANCE.NS");
+  const entry = universe.find((u) => u.symbol === symbol) ?? universe[0];
+  const fetchNews = useServerFn(getNews);
+  const query = `${entry?.name ?? symbol} ${market === "IN" ? "NSE stock" : "stock"}`;
+
+  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: ["news", query],
+    queryFn: () => fetchNews({ data: { query, limit: 15 } }),
+    staleTime: 1000 * 60 * 10,
+  });
 
   return (
-    <Page title="News & Sentiment" subtitle="Manually curated demo feed. Every item shows source, date, sentiment, and impact horizon.">
+    <Page
+      title="News & Sentiment"
+      subtitle="Live Google News RSS feed. Sentiment is heuristic (keyword-based) — verify before acting."
+      actions={
+        <button onClick={() => refetch()} className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:opacity-90">
+          {isFetching ? "Refreshing…" : "Refresh"}
+        </button>
+      }
+    >
       <Panel>
-        <div className="space-y-2">
-          {items.map((n, i) => (
-            <div key={i} className="p-3 rounded border border-border/40 hover:border-primary/40">
-              <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-1">
-                <Link to="/stock/$symbol" params={{ symbol: n.symbol }} className="text-primary font-semibold">{n.symbol.replace(".NS", "")}</Link>
-                <span>·</span><span>{n.source}</span><span>·</span><span>{n.date}</span>
-                <span className={`ml-auto font-semibold ${SENT_COLOR[n.sentiment as keyof typeof SENT_COLOR]}`}>{n.sentiment}</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-secondary text-foreground">{n.impact}</span>
-              </div>
-              <div className="text-sm">{n.title}</div>
-            </div>
-          ))}
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <label className="text-xs text-muted-foreground">Ticker:</label>
+          <select
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+            className="bg-secondary border border-border rounded px-2 py-1 text-xs"
+          >
+            {universe.map((u) => (
+              <option key={u.symbol} value={u.symbol}>
+                {u.symbol.replace(".NS", "")} — {u.name}
+              </option>
+            ))}
+          </select>
+          <span className="text-[10px] text-muted-foreground ml-auto">Query: <code className="bg-secondary px-1 rounded">{query}</code></span>
         </div>
-        <DataSource source="Manual curation · free public sources only" />
+
+        {isLoading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground py-8 justify-center">
+            <Loader2 className="h-4 w-4 animate-spin" /> Fetching live headlines…
+          </div>
+        )}
+
+        {isError && <Unavailable reason="News feed temporarily unreachable. Try refreshing in a moment." />}
+
+        {data?.error && <Unavailable reason={data.error} />}
+
+        {data?.items && data.items.length > 0 && (
+          <div className="space-y-2">
+            {data.items.map((n, i) => {
+              const sent = classifySentiment(n.title + " " + n.snippet);
+              return (
+                <a
+                  key={i}
+                  href={n.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-3 rounded border border-border/40 hover:border-primary/60 hover:bg-secondary/40 transition"
+                >
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-1 flex-wrap">
+                    <Link
+                      to="/stock/$symbol"
+                      params={{ symbol: entry?.symbol ?? symbol }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-primary font-semibold"
+                    >
+                      {(entry?.symbol ?? symbol).replace(".NS", "")}
+                    </Link>
+                    <span>·</span>
+                    <span>{n.source}</span>
+                    <span>·</span>
+                    <span>{new Date(n.pubDate).toLocaleString()}</span>
+                    <span className={`ml-auto font-semibold ${sent.color}`}>{sent.label}</span>
+                  </div>
+                  <div className="text-sm font-medium flex items-start gap-2">
+                    <span className="flex-1">{n.title}</span>
+                    <ExternalLink className="h-3 w-3 mt-1 text-muted-foreground shrink-0" />
+                  </div>
+                  {n.snippet && <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.snippet}</div>}
+                </a>
+              );
+            })}
+          </div>
+        )}
+
+        <DataSource source="Google News RSS · free public feed · sentiment is heuristic" />
       </Panel>
-      <div className="mt-3"><Unavailable reason="Real-time RSS feed wiring is pending. Treat headlines above as demo content for the UI." /></div>
     </Page>
   );
 }
