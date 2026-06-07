@@ -14,7 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      stock_metrics_cache: {
+        Row: {
+          created_at: string
+          data: Json
+          fetched_at: string
+          market: string
+          source: string
+          symbol: string
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          fetched_at?: string
+          market: string
+          source: string
+          symbol: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          fetched_at?: string
+          market?: string
+          source?: string
+          symbol?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
