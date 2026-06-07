@@ -1,13 +1,17 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { Page, Panel, ScorePill, Bar, DataSource, MetricRow, fmtNum, fmtPct, Unavailable } from "@/components/common";
 import { Info } from "@/components/Info";
 import { ActionPlanPanel } from "@/components/ActionPlanPanel";
+import { DataBadge } from "@/components/DataBadge";
 import { useAppStore, weightsForHorizon, type Horizon } from "@/stores/app-store";
-import { computeAllScores, seedMetrics } from "@/lib/scoring";
+import { computeAllScores, seedMetrics, type StockMetrics } from "@/lib/scoring";
 import { computeActionPlan } from "@/lib/action-plan";
 import { findEntry } from "@/lib/universe";
+import { getRealMetrics } from "@/lib/market.functions";
 import { useMemo, useState } from "react";
-import { Star, XCircle } from "lucide-react";
+import { Star, XCircle, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/stock/$symbol")({
   head: ({ params }) => ({ meta: [{ title: `${params.symbol} — Stock Detail` }] }),
@@ -29,12 +33,34 @@ function StockDetail() {
 
   if (!entry) throw notFound();
 
+  // Real market data with cache fallback. While loading or if all providers
+  // fail, fall back to the deterministic seed so the page still renders —
+  // but the DataBadge surfaces exactly what's live vs synthetic.
+  const fetchReal = useServerFn(getRealMetrics);
+  const realQ = useQuery({
+    queryKey: ["real-metrics", entry.symbol],
+    queryFn: () => fetchReal({ data: { symbol: entry.symbol, market: entry.market } }),
+    staleTime: 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   const weights = useMemo(() => weightsForHorizon(stockHorizon), [stockHorizon]);
-  const m = useMemo(() => seedMetrics(entry.symbol, entry.sector), [entry]);
+  const seed = useMemo(() => seedMetrics(entry.symbol, entry.sector), [entry]);
+  // Merge real over seed: any real value wins, missing real falls back to seed.
+  const m: StockMetrics = useMemo(() => {
+    if (!realQ.data) return seed;
+    const out = { ...seed } as StockMetrics;
+    for (const k of Object.keys(realQ.data.metrics) as (keyof StockMetrics)[]) {
+      const v = realQ.data.metrics[k];
+      if (v != null) (out as any)[k] = v;
+    }
+    return out;
+  }, [seed, realQ.data]);
   const scores = useMemo(() => computeAllScores(m, entry, weights), [m, entry, weights]);
   const plan = useMemo(() => computeActionPlan(m, scores, stockHorizon), [m, scores, stockHorizon]);
   const cur = entry.market === "IN" ? "₹" : "$";
   const isWatched = watchlist.includes(entry.symbol);
+  const meta = realQ.data?.meta;
 
   return (
     <Page
@@ -53,6 +79,25 @@ function StockDetail() {
         </div>
       }
     >
+      <Panel className="mb-4 flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Data integrity</div>
+          {realQ.isLoading ? (
+            <div className="text-xs text-muted-foreground">Fetching live data…</div>
+          ) : meta ? (
+            <DataBadge status={meta.status} source={meta.primarySource} ageMinutes={meta.ageMinutes} errors={meta.errors} />
+          ) : (
+            <DataBadge status="UNAVAILABLE" source="No provider" ageMinutes={0} errors={[realQ.error instanceof Error ? realQ.error.message : "Fetch failed"]} />
+          )}
+        </div>
+        <button
+          onClick={() => realQ.refetch()}
+          disabled={realQ.isFetching}
+          className="text-xs px-3 py-1.5 rounded border border-border hover:bg-secondary/40 flex items-center gap-1.5 disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3 w-3 ${realQ.isFetching ? "animate-spin" : ""}`} /> Refresh
+        </button>
+      </Panel>
       <div className="mb-4">
         <ActionPlanPanel plan={plan} currency={cur} horizon={stockHorizon} onHorizonChange={setStockHorizon} />
       </div>
@@ -95,7 +140,7 @@ function StockDetail() {
           <MetricRow label="52w low" value={<>{cur}{fmtNum(m.price && m.pctFrom52wLow ? m.price / (1 + m.pctFrom52wLow) : null)}</>} />
           <MetricRow label="Beta" value={m.beta?.toFixed(2) ?? "—"} />
           <MetricRow label="Avg volume" value={fmtNum(m.avgVolume)} />
-          <DataSource source="Yahoo Finance (seed)" />
+          <DataSource source={meta?.primarySource ?? "Loading…"} />
         </Panel>
 
         {tab === "Fundamental" && (
