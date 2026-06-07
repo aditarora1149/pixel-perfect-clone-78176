@@ -140,7 +140,7 @@ function StockDetail() {
           <MetricRow label="52w low" value={<>{cur}{fmtNum(m.price && m.pctFrom52wLow ? m.price / (1 + m.pctFrom52wLow) : null)}</>} />
           <MetricRow label="Beta" value={m.beta?.toFixed(2) ?? "—"} />
           <MetricRow label="Avg volume" value={fmtNum(m.avgVolume)} />
-          <DataSource source="Yahoo Finance (seed)" />
+          <DataSource source={meta?.primarySource ?? "Loading…"} />
         </Panel>
 
         {tab === "Fundamental" && (
