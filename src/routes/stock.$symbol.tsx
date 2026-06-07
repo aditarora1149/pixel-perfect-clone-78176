@@ -33,12 +33,34 @@ function StockDetail() {
 
   if (!entry) throw notFound();
 
+  // Real market data with cache fallback. While loading or if all providers
+  // fail, fall back to the deterministic seed so the page still renders —
+  // but the DataBadge surfaces exactly what's live vs synthetic.
+  const fetchReal = useServerFn(getRealMetrics);
+  const realQ = useQuery({
+    queryKey: ["real-metrics", entry.symbol],
+    queryFn: () => fetchReal({ data: { symbol: entry.symbol, market: entry.market } }),
+    staleTime: 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   const weights = useMemo(() => weightsForHorizon(stockHorizon), [stockHorizon]);
-  const m = useMemo(() => seedMetrics(entry.symbol, entry.sector), [entry]);
+  const seed = useMemo(() => seedMetrics(entry.symbol, entry.sector), [entry]);
+  // Merge real over seed: any real value wins, missing real falls back to seed.
+  const m: StockMetrics = useMemo(() => {
+    if (!realQ.data) return seed;
+    const out = { ...seed } as StockMetrics;
+    for (const k of Object.keys(realQ.data.metrics) as (keyof StockMetrics)[]) {
+      const v = realQ.data.metrics[k];
+      if (v != null) (out as any)[k] = v;
+    }
+    return out;
+  }, [seed, realQ.data]);
   const scores = useMemo(() => computeAllScores(m, entry, weights), [m, entry, weights]);
   const plan = useMemo(() => computeActionPlan(m, scores, stockHorizon), [m, scores, stockHorizon]);
   const cur = entry.market === "IN" ? "₹" : "$";
   const isWatched = watchlist.includes(entry.symbol);
+  const meta = realQ.data?.meta;
 
   return (
     <Page
