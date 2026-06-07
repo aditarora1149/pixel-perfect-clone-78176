@@ -79,6 +79,25 @@ function StockDetail() {
         </div>
       }
     >
+      <Panel className="mb-4 flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Data integrity</div>
+          {realQ.isLoading ? (
+            <div className="text-xs text-muted-foreground">Fetching live data…</div>
+          ) : meta ? (
+            <DataBadge status={meta.status} source={meta.primarySource} ageMinutes={meta.ageMinutes} errors={meta.errors} />
+          ) : (
+            <DataBadge status="UNAVAILABLE" source="No provider" ageMinutes={0} errors={[realQ.error instanceof Error ? realQ.error.message : "Fetch failed"]} />
+          )}
+        </div>
+        <button
+          onClick={() => realQ.refetch()}
+          disabled={realQ.isFetching}
+          className="text-xs px-3 py-1.5 rounded border border-border hover:bg-secondary/40 flex items-center gap-1.5 disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3 w-3 ${realQ.isFetching ? "animate-spin" : ""}`} /> Refresh
+        </button>
+      </Panel>
       <div className="mb-4">
         <ActionPlanPanel plan={plan} currency={cur} horizon={stockHorizon} onHorizonChange={setStockHorizon} />
       </div>
