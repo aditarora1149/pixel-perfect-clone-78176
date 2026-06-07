@@ -1,13 +1,17 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { Page, Panel, ScorePill, Bar, DataSource, MetricRow, fmtNum, fmtPct, Unavailable } from "@/components/common";
 import { Info } from "@/components/Info";
 import { ActionPlanPanel } from "@/components/ActionPlanPanel";
+import { DataBadge } from "@/components/DataBadge";
 import { useAppStore, weightsForHorizon, type Horizon } from "@/stores/app-store";
-import { computeAllScores, seedMetrics } from "@/lib/scoring";
+import { computeAllScores, seedMetrics, type StockMetrics } from "@/lib/scoring";
 import { computeActionPlan } from "@/lib/action-plan";
 import { findEntry } from "@/lib/universe";
+import { getRealMetrics } from "@/lib/market.functions";
 import { useMemo, useState } from "react";
-import { Star, XCircle } from "lucide-react";
+import { Star, XCircle, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/stock/$symbol")({
   head: ({ params }) => ({ meta: [{ title: `${params.symbol} — Stock Detail` }] }),
