@@ -171,12 +171,13 @@ async function fromYahoo(symbol: string): Promise<{ partial: Partial<StockMetric
     start.setFullYear(end.getFullYear() - 2);
 
     const [sum, hist, quote] = await Promise.all([
-      yf.quoteSummary(symbol, {
+      (yf.quoteSummary(symbol, {
         modules: ["summaryDetail", "defaultKeyStatistics", "financialData", "assetProfile", "price"],
-      }).catch(() => null) as any,
-      yf.historical(symbol, { period1: start, period2: end, interval: "1d" }).catch(() => []) as any,
-      yf.quote(symbol).catch(() => null) as any,
+      }) as Promise<any>).catch(() => null),
+      (yf.historical(symbol, { period1: start, period2: end, interval: "1d" }) as Promise<any[]>).catch(() => [] as any[]),
+      (yf.quote(symbol) as Promise<any>).catch(() => null),
     ]);
+
 
     const sd = sum?.summaryDetail ?? {};
     const ks = sum?.defaultKeyStatistics ?? {};
