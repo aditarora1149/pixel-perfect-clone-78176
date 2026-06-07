@@ -333,27 +333,48 @@ export const getRealMetrics = createServerFn({ method: "POST" })
       }
     }
 
-    // Fetch fresh
-    const fmp = await fromFMP(symbol);
-    const finn = market === "US" ? await fromFinnhub(symbol) : { partial: {}, sources: {} as MetricsSourceMap, err: undefined };
+    // Fetch fresh — for IN stocks FMP free-tier 403s, so Yahoo is primary.
+    // For US we try all three and merge, preferring richer sources first.
+    const [fmp, yahoo, finn] = await Promise.all([
+      market === "US" ? fromFMP(symbol) : Promise.resolve({ partial: {}, sources: {} as MetricsSourceMap, history: [] as number[], err: undefined as string | undefined }),
+      fromYahoo(symbol),
+      market === "US" ? fromFinnhub(symbol) : Promise.resolve({ partial: {}, sources: {} as MetricsSourceMap, err: undefined as string | undefined }),
+    ]);
 
-    const technicals = computeTechnicals(fmp.history);
-    // Merge: FMP base + Finnhub overrides for fields where FMP lacked data
-    const merged: StockMetrics = { ...EMPTY, ...fmp.partial, ...technicals };
-    const sources: MetricsSourceMap = { ...fmp.sources };
-    for (const k of Object.keys(technicals) as (keyof StockMetrics)[]) {
-      if (technicals[k as keyof StockMetrics] != null) sources[k] = "Computed (FMP prices)";
+    // Prefer the provider that returned a non-empty history for technicals.
+    const priceHistory = (fmp.history?.length ?? 0) > 30 ? fmp.history : yahoo.history;
+    const technicals = computeTechnicals(priceHistory);
+    const techSource = (fmp.history?.length ?? 0) > 30 ? "Computed (FMP prices)" : "Computed (Yahoo prices)";
+
+    // Layered merge: FMP -> Yahoo -> Finnhub. First non-null wins per field.
+    const merged: StockMetrics = { ...EMPTY };
+    const sources: MetricsSourceMap = {};
+    const layers: Array<{ partial: Partial<StockMetrics>; src: MetricsSourceMap }> = [
+      { partial: fmp.partial, src: fmp.sources },
+      { partial: yahoo.partial, src: yahoo.sources },
+      { partial: (finn as any).partial ?? {}, src: (finn as any).sources ?? {} },
+    ];
+    for (const layer of layers) {
+      for (const k of Object.keys(layer.partial) as (keyof StockMetrics)[]) {
+        const v = (layer.partial as any)[k];
+        if (v != null && merged[k] == null) {
+          (merged as any)[k] = v;
+          sources[k] = layer.src[k] ?? "Unknown";
+        }
+      }
     }
-    for (const k of Object.keys(finn.partial) as (keyof StockMetrics)[]) {
-      const v = (finn.partial as any)[k];
-      if (v != null && merged[k] == null) {
+    // Technicals last — always computed locally
+    for (const k of Object.keys(technicals) as (keyof StockMetrics)[]) {
+      const v = (technicals as any)[k];
+      if (v != null) {
         (merged as any)[k] = v;
-        sources[k] = "Finnhub";
+        sources[k] = techSource;
       }
     }
 
     const errors: string[] = [];
     if (fmp.err) errors.push(fmp.err);
+    if (yahoo.err) errors.push(yahoo.err);
     if ((finn as any).err) errors.push((finn as any).err);
 
     const populated = Object.values(merged).filter((v) => v != null).length;
@@ -361,13 +382,19 @@ export const getRealMetrics = createServerFn({ method: "POST" })
     const status: "LIVE" | "PARTIAL" | "UNAVAILABLE" =
       populated === 0 ? "UNAVAILABLE" : populated < total * 0.5 ? "PARTIAL" : "LIVE";
 
-    const primarySource = market === "US" ? "FMP + Finnhub" : "FMP";
+    const usedProviders = [
+      Object.keys(fmp.sources).length > 0 ? "FMP" : null,
+      Object.keys(yahoo.sources).length > 0 ? "Yahoo" : null,
+      Object.keys((finn as any).sources ?? {}).length > 0 ? "Finnhub" : null,
+    ].filter(Boolean);
+    const primarySource = usedProviders.length > 0 ? usedProviders.join(" + ") : "No provider";
     const payload = { metrics: merged, meta: { sources, errors } };
 
     if (status !== "UNAVAILABLE") {
       try { await writeCache(symbol, market, payload, primarySource); }
       catch (e) { errors.push(`cache write: ${(e as Error).message}`); }
     }
+
 
     return {
       symbol,
