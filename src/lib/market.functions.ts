@@ -162,7 +162,63 @@ async function fromFMP(symbol: string): Promise<{ partial: Partial<StockMetrics>
   }
 }
 
-// ---------- technical computations from price history ----------
+async function fromYahoo(symbol: string): Promise<{ partial: Partial<StockMetrics>; sources: MetricsSourceMap; history: number[]; err?: string }> {
+  try {
+    const mod = await import("yahoo-finance2");
+    const yf = mod.default;
+    const end = new Date();
+    const start = new Date();
+    start.setFullYear(end.getFullYear() - 2);
+
+    const [sum, hist, quote] = await Promise.all([
+      (yf.quoteSummary(symbol, {
+        modules: ["summaryDetail", "defaultKeyStatistics", "financialData", "assetProfile", "price"],
+      }) as Promise<any>).catch(() => null),
+      (yf.historical(symbol, { period1: start, period2: end, interval: "1d" }) as Promise<any[]>).catch(() => [] as any[]),
+      (yf.quote(symbol) as Promise<any>).catch(() => null),
+    ]);
+
+
+    const sd = sum?.summaryDetail ?? {};
+    const ks = sum?.defaultKeyStatistics ?? {};
+    const fd = sum?.financialData ?? {};
+    const px = sum?.price ?? {};
+
+    const closes: number[] = Array.isArray(hist)
+      ? hist.filter((r: any) => r?.close != null).map((r: any) => r.close as number)
+      : [];
+
+    const partial: Partial<StockMetrics> = {
+      price: num(quote?.regularMarketPrice ?? px?.regularMarketPrice),
+      marketCap: num(quote?.marketCap ?? sd?.marketCap),
+      beta: num(sd?.beta ?? ks?.beta),
+      trailingPE: num(sd?.trailingPE),
+      forwardPE: num(sd?.forwardPE),
+      priceToBook: num(ks?.priceToBook),
+      evToEbitda: num(ks?.enterpriseToEbitda),
+      dividendYield: num(sd?.dividendYield),
+      profitMargins: num(fd?.profitMargins),
+      operatingMargins: num(fd?.operatingMargins),
+      returnOnEquity: num(fd?.returnOnEquity),
+      returnOnAssets: num(fd?.returnOnAssets),
+      debtToEquity: num(fd?.debtToEquity) != null ? num(fd.debtToEquity)! / 100 : null,
+      currentRatio: num(fd?.currentRatio),
+      revenueGrowth: num(fd?.revenueGrowth),
+      earningsGrowth: num(fd?.earningsGrowth),
+      freeCashflow: num(fd?.freeCashflow),
+      avgVolume: num(quote?.averageDailyVolume3Month ?? sd?.averageDailyVolume10Day),
+    };
+    const sources: MetricsSourceMap = {};
+    for (const k of Object.keys(partial) as (keyof StockMetrics)[]) {
+      if (partial[k] != null) sources[k] = "Yahoo Finance";
+    }
+    return { partial, sources, history: closes };
+  } catch (e) {
+    return { partial: {}, sources: {}, history: [], err: `Yahoo: ${(e as Error).message}` };
+  }
+}
+
+
 
 function computeTechnicals(closes: number[]): Partial<StockMetrics> {
   if (closes.length < 30) return {};
@@ -277,27 +333,48 @@ export const getRealMetrics = createServerFn({ method: "POST" })
       }
     }
 
-    // Fetch fresh
-    const fmp = await fromFMP(symbol);
-    const finn = market === "US" ? await fromFinnhub(symbol) : { partial: {}, sources: {} as MetricsSourceMap, err: undefined };
+    // Fetch fresh — for IN stocks FMP free-tier 403s, so Yahoo is primary.
+    // For US we try all three and merge, preferring richer sources first.
+    const [fmp, yahoo, finn] = await Promise.all([
+      market === "US" ? fromFMP(symbol) : Promise.resolve({ partial: {}, sources: {} as MetricsSourceMap, history: [] as number[], err: undefined as string | undefined }),
+      fromYahoo(symbol),
+      market === "US" ? fromFinnhub(symbol) : Promise.resolve({ partial: {}, sources: {} as MetricsSourceMap, err: undefined as string | undefined }),
+    ]);
 
-    const technicals = computeTechnicals(fmp.history);
-    // Merge: FMP base + Finnhub overrides for fields where FMP lacked data
-    const merged: StockMetrics = { ...EMPTY, ...fmp.partial, ...technicals };
-    const sources: MetricsSourceMap = { ...fmp.sources };
-    for (const k of Object.keys(technicals) as (keyof StockMetrics)[]) {
-      if (technicals[k as keyof StockMetrics] != null) sources[k] = "Computed (FMP prices)";
+    // Prefer the provider that returned a non-empty history for technicals.
+    const priceHistory = (fmp.history?.length ?? 0) > 30 ? fmp.history : yahoo.history;
+    const technicals = computeTechnicals(priceHistory);
+    const techSource = (fmp.history?.length ?? 0) > 30 ? "Computed (FMP prices)" : "Computed (Yahoo prices)";
+
+    // Layered merge: FMP -> Yahoo -> Finnhub. First non-null wins per field.
+    const merged: StockMetrics = { ...EMPTY };
+    const sources: MetricsSourceMap = {};
+    const layers: Array<{ partial: Partial<StockMetrics>; src: MetricsSourceMap }> = [
+      { partial: fmp.partial, src: fmp.sources },
+      { partial: yahoo.partial, src: yahoo.sources },
+      { partial: (finn as any).partial ?? {}, src: (finn as any).sources ?? {} },
+    ];
+    for (const layer of layers) {
+      for (const k of Object.keys(layer.partial) as (keyof StockMetrics)[]) {
+        const v = (layer.partial as any)[k];
+        if (v != null && merged[k] == null) {
+          (merged as any)[k] = v;
+          sources[k] = layer.src[k] ?? "Unknown";
+        }
+      }
     }
-    for (const k of Object.keys(finn.partial) as (keyof StockMetrics)[]) {
-      const v = (finn.partial as any)[k];
-      if (v != null && merged[k] == null) {
+    // Technicals last — always computed locally
+    for (const k of Object.keys(technicals) as (keyof StockMetrics)[]) {
+      const v = (technicals as any)[k];
+      if (v != null) {
         (merged as any)[k] = v;
-        sources[k] = "Finnhub";
+        sources[k] = techSource;
       }
     }
 
     const errors: string[] = [];
     if (fmp.err) errors.push(fmp.err);
+    if (yahoo.err) errors.push(yahoo.err);
     if ((finn as any).err) errors.push((finn as any).err);
 
     const populated = Object.values(merged).filter((v) => v != null).length;
@@ -305,13 +382,19 @@ export const getRealMetrics = createServerFn({ method: "POST" })
     const status: "LIVE" | "PARTIAL" | "UNAVAILABLE" =
       populated === 0 ? "UNAVAILABLE" : populated < total * 0.5 ? "PARTIAL" : "LIVE";
 
-    const primarySource = market === "US" ? "FMP + Finnhub" : "FMP";
+    const usedProviders = [
+      Object.keys(fmp.sources).length > 0 ? "FMP" : null,
+      Object.keys(yahoo.sources).length > 0 ? "Yahoo" : null,
+      Object.keys((finn as any).sources ?? {}).length > 0 ? "Finnhub" : null,
+    ].filter(Boolean);
+    const primarySource = usedProviders.length > 0 ? usedProviders.join(" + ") : "No provider";
     const payload = { metrics: merged, meta: { sources, errors } };
 
     if (status !== "UNAVAILABLE") {
       try { await writeCache(symbol, market, payload, primarySource); }
       catch (e) { errors.push(`cache write: ${(e as Error).message}`); }
     }
+
 
     return {
       symbol,
