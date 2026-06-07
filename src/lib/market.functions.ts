@@ -162,7 +162,62 @@ async function fromFMP(symbol: string): Promise<{ partial: Partial<StockMetrics>
   }
 }
 
-// ---------- technical computations from price history ----------
+async function fromYahoo(symbol: string): Promise<{ partial: Partial<StockMetrics>; sources: MetricsSourceMap; history: number[]; err?: string }> {
+  try {
+    const mod = await import("yahoo-finance2");
+    const yf = mod.default;
+    const end = new Date();
+    const start = new Date();
+    start.setFullYear(end.getFullYear() - 2);
+
+    const [sum, hist, quote] = await Promise.all([
+      yf.quoteSummary(symbol, {
+        modules: ["summaryDetail", "defaultKeyStatistics", "financialData", "assetProfile", "price"],
+      }).catch(() => null) as any,
+      yf.historical(symbol, { period1: start, period2: end, interval: "1d" }).catch(() => []) as any,
+      yf.quote(symbol).catch(() => null) as any,
+    ]);
+
+    const sd = sum?.summaryDetail ?? {};
+    const ks = sum?.defaultKeyStatistics ?? {};
+    const fd = sum?.financialData ?? {};
+    const px = sum?.price ?? {};
+
+    const closes: number[] = Array.isArray(hist)
+      ? hist.filter((r: any) => r?.close != null).map((r: any) => r.close as number)
+      : [];
+
+    const partial: Partial<StockMetrics> = {
+      price: num(quote?.regularMarketPrice ?? px?.regularMarketPrice),
+      marketCap: num(quote?.marketCap ?? sd?.marketCap),
+      beta: num(sd?.beta ?? ks?.beta),
+      trailingPE: num(sd?.trailingPE),
+      forwardPE: num(sd?.forwardPE),
+      priceToBook: num(ks?.priceToBook),
+      evToEbitda: num(ks?.enterpriseToEbitda),
+      dividendYield: num(sd?.dividendYield),
+      profitMargins: num(fd?.profitMargins),
+      operatingMargins: num(fd?.operatingMargins),
+      returnOnEquity: num(fd?.returnOnEquity),
+      returnOnAssets: num(fd?.returnOnAssets),
+      debtToEquity: num(fd?.debtToEquity) != null ? num(fd.debtToEquity)! / 100 : null,
+      currentRatio: num(fd?.currentRatio),
+      revenueGrowth: num(fd?.revenueGrowth),
+      earningsGrowth: num(fd?.earningsGrowth),
+      freeCashflow: num(fd?.freeCashflow),
+      avgVolume: num(quote?.averageDailyVolume3Month ?? sd?.averageDailyVolume10Day),
+    };
+    const sources: MetricsSourceMap = {};
+    for (const k of Object.keys(partial) as (keyof StockMetrics)[]) {
+      if (partial[k] != null) sources[k] = "Yahoo Finance";
+    }
+    return { partial, sources, history: closes };
+  } catch (e) {
+    return { partial: {}, sources: {}, history: [], err: `Yahoo: ${(e as Error).message}` };
+  }
+}
+
+
 
 function computeTechnicals(closes: number[]): Partial<StockMetrics> {
   if (closes.length < 30) return {};
